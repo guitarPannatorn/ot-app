@@ -1,0 +1,401 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, viewport-fit=cover" />
+<title>เงินเดือน + OT</title>
+
+<link rel="manifest" href="manifest.json" />
+<meta name="theme-color" content="#14171B" />
+<link rel="icon" href="icon-192.png" />
+<link rel="apple-touch-icon" href="icon-192.png" />
+<meta name="apple-mobile-web-app-capable" content="yes" />
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+<meta name="apple-mobile-web-app-title" content="OT Tracker" />
+<meta name="mobile-web-app-capable" content="yes" />
+
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Thai:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
+
+<style>
+  :root{
+    --ink:#14171B; --panel:#1B1F26; --panel-line:#2A2F39;
+    --paper:#F1EDE2; --paper-alt:#E7E1CE; --paper-weekend:#DCD4BC;
+    --amber:#E8A33D; --amber-deep:#B8791F; --teal:#3E7C74;
+    --text-dark:#20241F; --text-muted:#8B8578; --text-light:#EDE9DC;
+  }
+  * { box-sizing: border-box; }
+  html,body{ margin:0; padding:0; background:var(--ink); font-family:'IBM Plex Sans Thai',sans-serif;
+    -webkit-tap-highlight-color: transparent; padding-top: env(safe-area-inset-top); }
+  .mono{ font-family:'IBM Plex Mono', monospace; }
+  input[type=number]::-webkit-inner-spin-button{ opacity:0.6; }
+  input:focus, select:focus{ outline:2px solid var(--amber); outline-offset:1px; }
+  ::-webkit-scrollbar{ height:8px; width:8px; }
+  ::-webkit-scrollbar-thumb{ background:var(--panel-line); border-radius:4px; }
+  button{ font-family:inherit; }
+
+  .header{ border-bottom:3px solid var(--amber); background:linear-gradient(180deg,#1a1e26,var(--ink)); padding:20px 20px 16px; }
+  .header-inner{ max-width:1100px; margin:0 auto; display:flex; align-items:center; justify-content:space-between; flex-wrap:wrap; gap:12px; }
+  .brand{ display:flex; align-items:center; gap:10px; }
+  .brand-icon{ width:38px; height:38px; border-radius:50%; border:2px solid var(--amber); display:flex; align-items:center; justify-content:center; font-size:16px; }
+  .brand-title{ color:var(--text-light); font-weight:700; font-size:18px; letter-spacing:0.3px; }
+  .brand-sub{ color:var(--text-muted); font-size:12px; }
+  .nav{ display:flex; align-items:center; gap:10px; }
+  .nav-btn{ background:var(--panel); border:1px solid var(--panel-line); border-radius:8px; padding:8px 12px; cursor:pointer; color:var(--text-light); font-size:15px; }
+  .period-range{ color:var(--amber); font-size:15px; font-weight:700; }
+  .period-label{ color:var(--text-muted); font-size:12px; }
+
+  .wrap{ max-width:1100px; margin:0 auto; padding:20px; display:flex; flex-direction:column; gap:16px; }
+
+  .settings-card{ background:var(--panel); border:1px solid var(--panel-line); border-radius:12px; overflow:hidden; }
+  .settings-toggle{ width:100%; display:flex; align-items:center; justify-content:space-between; background:transparent; border:none; padding:12px 16px; cursor:pointer; }
+  .settings-toggle-label{ display:flex; align-items:center; gap:8px; color:var(--text-light); font-weight:600; font-size:14px; }
+  .settings-toggle-rate{ color:var(--text-muted); font-size:12px; }
+  .settings-grid{ padding:4px 16px 16px; display:grid; grid-template-columns:repeat(auto-fit,minmax(150px,1fr)); gap:12px; }
+  .field-label{ color:var(--text-muted); font-size:11.5px; margin-bottom:4px; }
+  .field input{ background:#fff; border:1px solid var(--panel-line); border-radius:6px; padding:6px 8px; font-size:13px; color:var(--text-dark); width:100%; }
+  .settings-hint{ grid-column:1/-1; color:var(--text-muted); font-size:11.5px; border-top:1px dashed var(--panel-line); padding-top:8px; line-height:1.6; }
+
+  .main-row{ display:flex; gap:16px; flex-wrap:wrap; align-items:flex-start; }
+
+  .ledger{ flex:2 1 480px; background:var(--paper); border-radius:12px; overflow:hidden; box-shadow:0 8px 24px rgba(0,0,0,.35); }
+  .ledger-head{ display:flex; align-items:center; justify-content:space-between; padding:12px 14px; border-bottom:1px solid var(--paper-alt); }
+  .ledger-title{ color:var(--text-dark); font-weight:700; font-size:14px; }
+  .reset-btn{ display:flex; align-items:center; gap:4px; background:transparent; border:1px solid var(--amber-deep); color:var(--amber-deep); border-radius:6px; padding:4px 8px; font-size:11.5px; cursor:pointer; }
+  table{ width:100%; border-collapse:collapse; font-size:12.5px; }
+  thead tr{ background:var(--paper-alt); color:var(--text-dark); }
+  th{ text-align:left; padding:8px 10px; font-weight:600; font-size:11.5px; letter-spacing:.3px; }
+  td{ padding:6px 10px; color:var(--text-dark); }
+  tbody tr{ border-bottom:1px solid var(--paper-alt); }
+  tr.weekend{ background:var(--paper-weekend); }
+  .weekday-cell{ color:var(--text-muted); }
+  .weekday-cell.weekend{ color:var(--amber-deep); font-weight:700; }
+  .cell-input{ background:#fff; border:1px solid var(--panel-line); border-radius:6px; padding:4px 6px; font-size:12.5px; width:100%; color:var(--text-dark); }
+  .table-scroll{ overflow-x:auto; }
+
+  .stub-wrap{ flex:1 1 260px; position:sticky; top:16px; }
+  .stub{ background:var(--paper); border-radius:12px; padding:18px 18px 20px; box-shadow:0 8px 24px rgba(0,0,0,.35); border-top:3px dashed var(--amber-deep); }
+  .stub-title{ text-align:center; color:var(--text-muted); font-size:11px; letter-spacing:1.5px; text-transform:uppercase; margin-bottom:10px; }
+  .stub-line{ display:flex; justify-content:space-between; padding:4px 0; font-size:13px; }
+  .stub-line span:first-child{ color:var(--text-dark); opacity:.75; }
+  .stub-line span:last-child{ font-weight:600; color:var(--text-dark); }
+  .stub-line.highlight span:last-child{ color:var(--amber-deep); }
+  .stub-divider{ border-top:1px dashed var(--paper-alt); margin:10px 0; }
+  .stub-total{ background:var(--ink); border-radius:8px; padding:12px 14px; display:flex; align-items:baseline; justify-content:space-between; }
+  .stub-total-label{ color:var(--text-light); font-size:12.5px; font-weight:600; }
+  .stub-total-value{ color:var(--amber); font-size:21px; font-weight:700; }
+  .stub-saved{ margin-top:10px; display:flex; align-items:center; gap:5px; color:var(--teal); font-size:11px; justify-content:center; }
+  .loading{ padding:30px; text-align:center; color:var(--text-muted); }
+  .install-tip{ max-width:1100px; margin:0 auto 20px; padding:0 20px; }
+  .install-banner{ background:var(--panel); border:1px dashed var(--amber); border-radius:10px; padding:10px 14px; color:var(--text-muted); font-size:12px; display:none; }
+</style>
+</head>
+<body>
+
+<div class="header">
+  <div class="header-inner">
+    <div class="brand">
+      <div class="brand-icon">🕐</div>
+      <div>
+        <div class="brand-title">ตอกบัตร · คำนวณเงินเดือน + OT</div>
+        <div class="brand-sub mono">รอบ OT วันที่ 21–20 · เงินเดือนคิดตามปฏิทิน 1–30</div>
+      </div>
+    </div>
+    <div class="nav">
+      <button class="nav-btn" id="prevBtn">‹</button>
+      <div style="text-align:center; min-width:190px;">
+        <div class="period-range mono" id="periodRange">–</div>
+        <div class="period-label" id="periodLabel">–</div>
+      </div>
+      <button class="nav-btn" id="nextBtn">›</button>
+    </div>
+  </div>
+</div>
+
+<div class="wrap">
+
+  <div class="settings-card">
+    <button class="settings-toggle" id="settingsToggle">
+      <span class="settings-toggle-label">⚙️ ตั้งค่าฐานเงินเดือน</span>
+      <span class="settings-toggle-rate mono" id="rateLabel">อัตรา/ชม. = 0.00 บาท ▼</span>
+    </button>
+    <div class="settings-grid" id="settingsGrid" style="display:none;">
+      <div class="field">
+        <div class="field-label">ฐานเงินเดือน (บาท/เดือน, รอบ 1–30)</div>
+        <input type="number" id="baseSalary" class="mono" />
+      </div>
+      <div class="field">
+        <div class="field-label">ค่าเดินทาง (เหมาจ่าย/เดือน)</div>
+        <input type="number" id="transportPerMonth" class="mono" />
+      </div>
+      <div class="field">
+        <div class="field-label">ค่าตำแหน่ง/เดือน (บาท)</div>
+        <input type="number" id="positionAllowance" class="mono" />
+      </div>
+      <div class="field">
+        <div class="field-label">วันทำงานมาตรฐาน/เดือน</div>
+        <input type="number" id="standardDays" class="mono" />
+      </div>
+      <div class="field">
+        <div class="field-label">ชม.ทำงาน/วัน</div>
+        <input type="number" id="hoursPerDay" class="mono" />
+      </div>
+      <div class="settings-hint mono">
+        อัตราค่าแรง/ชม. = ฐานเงินเดือน ÷ (วันทำงานมาตรฐาน × ชม.ทำงาน/วัน) · OT นับรอบ 21–20 · ฐานเงินเดือนกับค่าเดินทาง/ค่าตำแหน่งเป็นยอดเหมาจ่ายรายเดือน
+      </div>
+    </div>
+  </div>
+
+  <div class="main-row">
+    <div class="ledger">
+      <div class="ledger-head">
+        <div class="ledger-title">บันทึก OT รายวัน (รอบ 21–20)</div>
+        <button class="reset-btn" id="resetBtn">↺ ล้างรอบนี้</button>
+      </div>
+      <div class="table-scroll">
+        <table>
+          <thead>
+            <tr>
+              <th>วันที่</th><th>วัน</th><th>ชม. OT</th><th>อัตรา</th><th style="text-align:right;">ยอด OT (บาท)</th>
+            </tr>
+          </thead>
+          <tbody id="tableBody"></tbody>
+        </table>
+      </div>
+    </div>
+
+    <div class="stub-wrap">
+      <div class="stub">
+        <div class="stub-title">ใบสรุปเงินเดือน</div>
+        <div class="stub-line"><span>ฐานเงินเดือน</span><span class="mono" id="stubBase">0.00</span></div>
+        <div class="stub-line highlight"><span id="stubOtLabel">ค่าล่วงเวลา (0.00 ชม.)</span><span class="mono" id="stubOt">0.00</span></div>
+        <div class="stub-line"><span>ค่าเดินทาง (เหมาจ่าย)</span><span class="mono" id="stubTransport">0.00</span></div>
+        <div class="stub-line"><span>ค่าตำแหน่ง</span><span class="mono" id="stubPosition">0.00</span></div>
+        <div class="stub-divider"></div>
+        <div class="stub-total">
+          <span class="stub-total-label">รวมสุทธิ</span>
+          <span class="stub-total-value mono" id="stubTotal">฿0.00</span>
+        </div>
+        <div class="stub-saved">✓ บันทึกในเครื่องอัตโนมัติ</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+const THAI_MONTHS = ['มกราคม','กุมภาพันธ์','มีนาคม','เมษายน','พฤษภาคม','มิถุนายน','กรกฎาคม','สิงหาคม','กันยายน','ตุลาคม','พฤศจิกายน','ธันวาคม'];
+const THAI_MONTHS_SHORT = ['ม.ค.','ก.พ.','มี.ค.','เม.ย.','พ.ค.','มิ.ย.','ก.ค.','ส.ค.','ก.ย.','ต.ค.','พ.ย.','ธ.ค.'];
+const THAI_WD = ['อา','จ','อ','พ','พฤ','ศ','ส'];
+const OT_RATES = [1, 1.5, 2, 3];
+const DEFAULT_SETTINGS = { baseSalary: 15000, transportPerMonth: 1000, positionAllowance: 0, standardDays: 30, hoursPerDay: 8 };
+
+function fmt(n){ return (Number(n)||0).toLocaleString('th-TH',{minimumFractionDigits:2,maximumFractionDigits:2}); }
+function daysInMonth(y,m){ return new Date(y,m,0).getDate(); }
+function pad(n){ return String(n).padStart(2,'0'); }
+
+function makePeriodEntries(endYear, endMonth){
+  let startMonth = endMonth - 1, startYear = endYear;
+  if (startMonth < 1) { startMonth = 12; startYear -= 1; }
+  const startLen = daysInMonth(startYear, startMonth);
+  const arr = [];
+  for (let d = 21; d <= startLen; d++){
+    const dt = new Date(startYear, startMonth-1, d);
+    arr.push({ key:`${startYear}-${pad(startMonth)}-${pad(d)}`, day:d, month:startMonth, weekday:dt.getDay(), otHours:0, otRate:1.5 });
+  }
+  for (let d = 1; d <= 20; d++){
+    const dt = new Date(endYear, endMonth-1, d);
+    arr.push({ key:`${endYear}-${pad(endMonth)}-${pad(d)}`, day:d, month:endMonth, weekday:dt.getDay(), otHours:0, otRate:1.5 });
+  }
+  return arr;
+}
+
+let settings = { ...DEFAULT_SETTINGS };
+try {
+  const s = localStorage.getItem('ot-settings');
+  if (s) settings = { ...settings, ...JSON.parse(s) };
+} catch(e) {}
+
+const now = new Date();
+let endYear = now.getFullYear();
+let endMonth = now.getMonth() + 1;
+let entries = [];
+let showSettings = false;
+
+function periodKey(){ return `ot-entries-period-${endYear}-${pad(endMonth)}`; }
+
+function loadEntries(){
+  try {
+    const raw = localStorage.getItem(periodKey());
+    entries = raw ? JSON.parse(raw) : makePeriodEntries(endYear, endMonth);
+  } catch(e) {
+    entries = makePeriodEntries(endYear, endMonth);
+  }
+}
+
+function saveSettings(){ localStorage.setItem('ot-settings', JSON.stringify(settings)); }
+function saveEntries(){ localStorage.setItem(periodKey(), JSON.stringify(entries)); }
+
+function hourlyRate(){
+  const sd = Number(settings.standardDays), hd = Number(settings.hoursPerDay);
+  if (sd > 0 && hd > 0) return (Number(settings.baseSalary)||0) / (sd*hd);
+  return 0;
+}
+
+function renderHeader(){
+  let startMonth = endMonth - 1, startYear = endYear;
+  if (startMonth < 1) { startMonth = 12; startYear -= 1; }
+  document.getElementById('periodRange').textContent = `21 ${THAI_MONTHS_SHORT[startMonth-1]} – 20 ${THAI_MONTHS_SHORT[endMonth-1]}`;
+  document.getElementById('periodLabel').textContent = `รอบ OT ${THAI_MONTHS[endMonth-1]} ${endYear+543}`;
+}
+
+function renderSettingsFields(){
+  document.getElementById('baseSalary').value = settings.baseSalary;
+  document.getElementById('transportPerMonth').value = settings.transportPerMonth;
+  document.getElementById('positionAllowance').value = settings.positionAllowance;
+  document.getElementById('standardDays').value = settings.standardDays;
+  document.getElementById('hoursPerDay').value = settings.hoursPerDay;
+  document.getElementById('rateLabel').textContent = `อัตรา/ชม. = ${fmt(hourlyRate())} บาท ${showSettings ? '▲' : '▼'}`;
+}
+
+function renderTable(){
+  const rate = hourlyRate();
+  const body = document.getElementById('tableBody');
+  body.innerHTML = '';
+  entries.forEach((e, idx) => {
+    const isWeekend = e.weekday === 0 || e.weekday === 6;
+    const dailyOt = (parseFloat(e.otHours)||0) * rate * (Number(e.otRate)||1);
+    const tr = document.createElement('tr');
+    if (isWeekend) tr.className = 'weekend';
+
+    const tdDate = document.createElement('td');
+    tdDate.className = 'mono';
+    tdDate.style.fontWeight = '600';
+    tdDate.textContent = `${pad(e.day)} ${THAI_MONTHS_SHORT[e.month-1]}`;
+
+    const tdWd = document.createElement('td');
+    tdWd.className = 'weekday-cell' + (isWeekend ? ' weekend' : '');
+    tdWd.textContent = THAI_WD[e.weekday];
+
+    const tdHours = document.createElement('td');
+    const hoursInput = document.createElement('input');
+    hoursInput.type = 'number'; hoursInput.min = '0'; hoursInput.step = '0.5';
+    hoursInput.className = 'cell-input mono';
+    hoursInput.value = e.otHours;
+    hoursInput.addEventListener('input', (ev) => {
+      entries[idx].otHours = ev.target.value;
+      saveEntries();
+      renderRowTotal(tr, idx);
+      renderSummary();
+    });
+    tdHours.appendChild(hoursInput);
+
+    const tdRate = document.createElement('td');
+    const rateSelect = document.createElement('select');
+    rateSelect.className = 'cell-input mono';
+    OT_RATES.forEach(r => {
+      const opt = document.createElement('option');
+      opt.value = r; opt.textContent = r + 'x';
+      if (Number(e.otRate) === r) opt.selected = true;
+      rateSelect.appendChild(opt);
+    });
+    rateSelect.addEventListener('change', (ev) => {
+      entries[idx].otRate = ev.target.value;
+      saveEntries();
+      renderRowTotal(tr, idx);
+      renderSummary();
+    });
+    tdRate.appendChild(rateSelect);
+
+    const tdTotal = document.createElement('td');
+    tdTotal.className = 'mono row-total';
+    tdTotal.style.textAlign = 'right';
+    tdTotal.style.fontWeight = '600';
+    tdTotal.style.color = dailyOt > 0 ? '#B8791F' : '#8B8578';
+    tdTotal.textContent = dailyOt > 0 ? fmt(dailyOt) : '—';
+
+    tr.appendChild(tdDate); tr.appendChild(tdWd); tr.appendChild(tdHours); tr.appendChild(tdRate); tr.appendChild(tdTotal);
+    body.appendChild(tr);
+  });
+}
+
+function renderRowTotal(tr, idx){
+  const rate = hourlyRate();
+  const e = entries[idx];
+  const dailyOt = (parseFloat(e.otHours)||0) * rate * (Number(e.otRate)||1);
+  const cell = tr.querySelector('.row-total');
+  cell.style.color = dailyOt > 0 ? '#B8791F' : '#8B8578';
+  cell.textContent = dailyOt > 0 ? fmt(dailyOt) : '—';
+}
+
+function renderSummary(){
+  const rate = hourlyRate();
+  const totalOtHours = entries.reduce((s,e) => s + (parseFloat(e.otHours)||0), 0);
+  const totalOtPay = entries.reduce((s,e) => s + (parseFloat(e.otHours)||0) * rate * (Number(e.otRate)||1), 0);
+  const transport = Number(settings.transportPerMonth) || 0;
+  const position = Number(settings.positionAllowance) || 0;
+  const base = Number(settings.baseSalary) || 0;
+  const total = base + totalOtPay + transport + position;
+
+  document.getElementById('stubBase').textContent = fmt(base);
+  document.getElementById('stubOtLabel').textContent = `ค่าล่วงเวลา (${fmt(totalOtHours)} ชม.)`;
+  document.getElementById('stubOt').textContent = fmt(totalOtPay);
+  document.getElementById('stubTransport').textContent = fmt(transport);
+  document.getElementById('stubPosition').textContent = fmt(position);
+  document.getElementById('stubTotal').textContent = '฿' + fmt(total);
+  document.getElementById('rateLabel').textContent = `อัตรา/ชม. = ${fmt(rate)} บาท ${showSettings ? '▲' : '▼'}`;
+}
+
+function renderAll(){
+  renderHeader();
+  renderSettingsFields();
+  renderTable();
+  renderSummary();
+}
+
+document.getElementById('prevBtn').addEventListener('click', () => {
+  endMonth -= 1;
+  if (endMonth < 1) { endMonth = 12; endYear -= 1; }
+  loadEntries();
+  renderAll();
+});
+document.getElementById('nextBtn').addEventListener('click', () => {
+  endMonth += 1;
+  if (endMonth > 12) { endMonth = 1; endYear += 1; }
+  loadEntries();
+  renderAll();
+});
+
+document.getElementById('settingsToggle').addEventListener('click', () => {
+  showSettings = !showSettings;
+  document.getElementById('settingsGrid').style.display = showSettings ? 'grid' : 'none';
+  renderSettingsFields();
+});
+
+['baseSalary','transportPerMonth','positionAllowance','standardDays','hoursPerDay'].forEach(id => {
+  document.getElementById(id).addEventListener('input', (ev) => {
+    settings[id] = ev.target.value;
+    saveSettings();
+    renderTable();
+    renderSummary();
+  });
+});
+
+document.getElementById('resetBtn').addEventListener('click', () => {
+  if (confirm('ล้างข้อมูล OT ของรอบนี้?')) {
+    entries = makePeriodEntries(endYear, endMonth);
+    saveEntries();
+    renderAll();
+  }
+});
+
+loadEntries();
+renderAll();
+
+if ('serviceWorker' in navigator) {
+  window.addEventListener('load', () => {
+    navigator.serviceWorker.register('service-worker.js').catch(() => {});
+  });
+}
+</script>
+</body>
+</html>
